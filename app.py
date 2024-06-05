@@ -1,14 +1,14 @@
-# import libraries
+# Import libraries
 from flask import Flask, render_template, request
 from newsapi import NewsApiClient
 
-# init flask app
+# Initialize Flask app
 app = Flask(__name__)
 
-# Init news api
+# Initialize news API client
 newsapi = NewsApiClient(api_key='6e648238a4c743b7bdaf2892f04d8101')
 
-# helper function
+# Helper function to get sources and domains
 def get_sources_and_domains():
     all_sources = newsapi.get_sources()['sources']
     sources = []
@@ -33,31 +33,30 @@ def home():
         sources, domains = get_sources_and_domains()
         keyword = request.form["keyword"]
         related_news = newsapi.get_everything(q=keyword,
-                                      sources=sources,
-                                      domains=domains,
-                                      language='en',
-                                      sort_by='relevancy')
-        no_of_articles = related_news['totalResults']
+                                              sources=sources,
+                                              domains=domains,
+                                              language='en',
+                                              sort_by='relevancy')
+        no_of_articles = related_news.get('totalResults', 0)
         if no_of_articles > 100:
             no_of_articles = 100
         all_articles = newsapi.get_everything(q=keyword,
-                                      sources=sources,
-                                      domains=domains,
-                                      language='en',
-                                      sort_by='relevancy',
-                                      page_size = no_of_articles)['articles']
-        return render_template("index.html", all_articles = all_articles,
-                               keyword=keyword)
+                                              sources=sources,
+                                              domains=domains,
+                                              language='en',
+                                              sort_by='relevancy',
+                                              page_size=no_of_articles).get('articles', [])
+        return render_template("index.html", all_articles=all_articles, keyword=keyword)
     else:
         top_headlines = newsapi.get_top_headlines(country="in", language="en")
-        total_results = top_headlines['totalResults']
+        total_results = top_headlines.get('totalResults', 0)
         if total_results > 100:
             total_results = 100
         all_headlines = newsapi.get_top_headlines(country="in",
-                                                     language="en",
-                                                     page_size=total_results)['articles']
-        return render_template("index.html", all_headlines = all_headlines)
+                                                  language="en",
+                                                  page_size=total_results).get('articles', [])
+        return render_template("index.html", all_headlines=all_headlines)
     return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    app.run(debug=True)

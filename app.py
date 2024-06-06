@@ -1,14 +1,11 @@
-# Import libraries
 from flask import Flask, render_template, request
 from newsapi import NewsApiClient
 import os
 
-
-# Initialize Flask app
 app = Flask(__name__)
 
-# Initialize news API client
-newsapi = NewsApiClient(api_key='6e648238a4c743b7bdaf2892f04d8101')
+# Initialize news API client with the API key from the environment variable
+newsapi = NewsApiClient(api_key=os.getenv('NEWS_API_KEY'))
 
 # Helper function to get sources and domains
 def get_sources_and_domains(limit=10):
@@ -50,8 +47,8 @@ def home():
                                                   sort_by='relevancy',
                                                   page_size=no_of_articles).get('articles', [])
             return render_template("index.html", all_articles=all_articles, keyword=keyword)
-        except NewsAPIException as e:
-            error_message = e.get_message()
+        except Exception as e:
+            error_message = str(e)
             return render_template("index.html", error=error_message)
     else:
         try:
@@ -63,11 +60,10 @@ def home():
                                                       language="en",
                                                       page_size=total_results).get('articles', [])
             return render_template("index.html", all_headlines=all_headlines)
-        except NewsAPIException as e:
-            error_message = e.get_message()
+        except Exception as e:
+            error_message = str(e)
             return render_template("index.html", error=error_message)
     return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
